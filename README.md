@@ -1,8 +1,8 @@
 # Porfolio
 **(ENG)My portfolio**, the folder names are self-explainatory but in short:<br />
 **(RUS)Моё портфолио**, имена папок объясняют себя, но вкратце:<br />
-**(ENG)school_stuff** - rewritten basic C functions for working with C-like strings (char arrays), made during my education in School 21<br />
-**(RUS)school_stuff** -переписанные базовые C функции для работы со строками и памятью, выполненные вовремя обучения в Школе 21<br />
+**(ENG)school_stuff** - rewritten basic C functions for working with C-like strings (char arrays), as well as solutions to two excercises, BSQ and fillit, made during my education in School 21<br />
+**(RUS)school_stuff** -переписанные базовые C функции для работы со строками и памятью, а также решения двух задач BSQ и fillit, выполненные вовремя обучения в Школе 21<br />
 **(ENG)site_stuff** - Python script for downloading, reformatting and updating the database on avg-market.ru<br />
 **(RUS)site_stuff** - Python скрипт для скачивания, реформатирования и обновления базы данных сайта avg-market.ru<br />
 **(ENG)CAD** - a simple C++ project, consisting of a library of curves (circle, ellipse and a 3D Helix) and functions, allowing to find out coordinates on a curve as well as its first derivative in those coordinates, using an argument t, as well as a multithreaded (using OpenPM) program which creates a container of a random size containing either of the 3 objects, afterwards creating a second container, containing only the references to the circles in the first container, for which it outputs coordinates and first derivatives at the argument t = pi/4<br />
