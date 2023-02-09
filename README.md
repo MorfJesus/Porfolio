@@ -9,5 +9,5 @@
 **(RUS)CAD** - простой C++ проект, состоящий из библиотеки кривых (круга, эллипса и 3D хиликса) и функций, позволяющих определить координаты точки и первую производную в этой точке, используя аргумент t, а также многопоточная программа (с использованием OpenPM), создающая контейнер случайного размера, содержащий любой из 3х объектов, затем создающая контейнер состоящий из ссылок только на круги из первого контейнера, для которых мы выводим координаты и первую производную для аргумента t = pi/4
 **(ENG)ft_ls** - my C++ implementation of the unix commmand ls<br />
 **(RUS)ft_ls** - моя C++ имплементация unix комманды ls<br />
-**(ENG)calc** - my basic C++ multithreaded calculator implementation, accounting for orders of computation as well as parentheses<br />
-**(RUS)calc** - моя базовая C++ имплементация многопоточного калькулятора, учитывающего порядок операций, а также скобочки<br />
+**(ENG)calc** - my basic C++ multithreaded (currently unfinished) calculator implementation, accounting for orders of computation as well as parentheses<br />
+**(RUS)calc** - моя базовая C++ имплементация многопоточного (на данный момент не до конца) калькулятора, учитывающего порядок операций, а также скобочки<br />
