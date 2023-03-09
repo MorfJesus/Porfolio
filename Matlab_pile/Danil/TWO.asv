@@ -1,0 +1,17 @@
+a = 2;
+b = a/2;
+omega = -2*pi:0.01:2*pi;
+
+Sv = (a+b*exp(-i*omega))/(2*pi);
+
+plot(omega, Sv)
+grid on
+
+XL = xlim
+YL = ylim;
+
+%line([0 0], [-1000 1000]); 
+%line([-1000 1000], [0 0]);
+
+xlim([-2*pi, 2*pi])
+xlim([-2*pi, 2*pi])
