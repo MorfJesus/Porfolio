@@ -1,0 +1,581 @@
+clear
+
+global m a b c q h theta1 E nu D m1
+
+m = 5; %Kol-vo chlenov
+
+a=0.1;
+b=0.6;
+c=0.4;
+q=0.5*10^3;
+m1=4*10^3;
+h=0.02;
+theta1 = pi;
+E=2*10^11;
+nu = 0.3;
+
+D = E*h^3/(12*(1-nu^2));
+
+syms theta m0 r
+
+q1 = -2*(1-r^2/b^2)*sin(3*theta);
+
+Pm = (1/pi) * int(q1*cos(m0*theta),theta, 0, theta1);
+Qm = (1/pi) * int(q1*sin(m0*theta),theta, 0, theta1);
+P0 = (1/(2*pi)) * int(q1, theta, 0, theta1);
+
+P = 0;
+
+Pmz = sym(zeros(1,m));
+Qmz = sym(zeros(1,m));
+Az = sym(zeros(1,m));
+Bz = sym(zeros(1,m));
+
+for i=1:m
+    Pmz(i)=subs(Pm, m0, i);
+    Az(i)=PartSol(Pmz(i), cos(theta));
+    Qmz(i)=subs(Qm, m0, i);
+    Bz(i)=PartSol(Qmz(i), sin(theta));
+    P = P+Pmz(i)*cos(i*theta) + Qmz(i)*sin(i*theta);
+end
+
+S = simplify(expand(Pmz))
+S = simplify(Qmz)
+
+S = simplify(Az)
+S = vpa(Bz)
+
+P = P + P0;
+
+syms A1 A2 A5 A6 A7 A8 B1 B2 B3 B4 B5 B6 B7 B8
+syms A0_1 A0_2 A0_5 A0_6 A0_7 A0_8
+
+C_1 = sym(zeros(1,m)); %Cm
+C_2 = sym(zeros(1,m));
+S_1 = sym(zeros(1,m)); %Sm
+S_2 = sym(zeros(1,m));
+
+C_1(1)=A1*r + A2*r^3 + Az(1); %Loaded part
+C_2(1)=A5*r + A6*r^3 + A7/r + A8*r*log(r);
+
+for i = 2:m
+    C_1(i)=A1*r^i + A2*r^(2+i) + Az(i); %Loaded part
+    C_2(i)=A5*r^i + A6*r^(2+i) + A7/(r^i) + A8*r^(2-i);
+end
+
+S_1(1)=B1*r + B2*r^3 + Bz(1); %Loaded part
+S_2(1)=B5*r + B6*r^3 + B7/r + B8*r*log(r);
+
+for i = 2:m
+    S_1(i)=B1*r^i + B2*r^(2+i) + Bz(i); %Loaded part
+    S_2(i)=B5*r^i + B6*r^(2+i) + B7/(r^i) + B8*r^(2-i);
+end
+
+%axisymmetrical part of W
+PartSol(P0, 1)
+W0_1=A0_1*r + A0_2*r^3 + PartSol(P0, 1);
+W0_2=A0_5*r + A0_6*r^3 + A0_7/r + A0_8*r*log(r);
+
+%!!finding constants through conditions!!
+
+%TESTING
+%{
+syms B
+W = B*r^5*cos(theta);
+syms P R r
+PartSol(P*r/R, r^5*cos(theta))
+%}
+%TESTING DONE
+
+%TO MEMORIZE
+%{ 
+QrKG_1(a) == 0;
+Mrr_1(a) == 0;
+W_1(c) == W_2(c);
+dW_1(c) == dW_2(c);
+Mrr_1(c) == Mrr_2(c);
+Qr_1(c) == Qr_2(c);
+W_2(b) == 0;
+Mrr_2(b) == 0;
+
+
+
+eqns = [subs(QrKG(W0_1), r, a)==0
+    subs(Mrr(W0_1), r, a)==0
+    subs(W0_1, r, c)==subs(W0_2, r, c)
+    subs(diff(W0_1, r), r, c)==subs(diff(W0_2, r), r, c)
+    subs(Mrr(W0_1), r, c)==subs(Mrr(W0_2), r, c)
+    subs(Qr(W0_1), r, c)==subs(Qr(W0_2), r, c)
+    subs(W0_2, r, b)==0
+    subs(Mrr(W0_2), r, b)==0];
+[A0_1, A0_2, A0_3, A0_4, A0_5, A0_6, A0_7, A0_8]=solve(eqns, vars);
+%}
+%MEMORIZING DONE
+
+vars_W0 = [A0_1, A0_2, A0_5, A0_6, A0_7, A0_8];
+vars_Cm = [A1, A2, A5, A6, A7, A8];
+vars_Sm = [B1, B2, B5, B6, B7, B8];
+
+R_vars_Cm = sym(zeros(m,6));
+R_vars_Sm = sym(zeros(m,6));
+
+R_vars_W0=O_UniqueSol(W0_1, W0_2, vars_W0);
+for i=1:m
+    R_vars_Cm(i, :)=c_UniqueSol(C_1(i), C_2(i), vars_Cm, i);
+    R_vars_Sm(i, :)=c_UniqueSol(S_1(i), S_2(i), vars_Sm, i);
+end
+
+
+R_C_1 = sym(zeros(1,m)); %Cm
+R_C_2 = sym(zeros(1,m));
+R_S_1 = sym(zeros(1,m)); %Sm
+R_S_2 = sym(zeros(1,m));
+
+A1 = R_vars_Cm(1, 1);
+A2 = R_vars_Cm(1, 2);
+A5 = R_vars_Cm(1, 3);
+A6 = R_vars_Cm(1, 4);
+A7 = R_vars_Cm(1, 5);
+A8 = R_vars_Cm(1, 6);
+
+
+R_C_1(1)=A1*r + A2*r^3 + Az(1); %Loaded part
+R_C_2(1)=A5*r + A6*r^3 + A7/r + A8*r*log(r);
+
+for i = 2:m
+    A1 = R_vars_Cm(i, 1);
+    A2 = R_vars_Cm(i, 2);
+    A5 = R_vars_Cm(i, 3);
+    A6 = R_vars_Cm(i, 4);
+    A7 = R_vars_Cm(i, 5);
+    A8 = R_vars_Cm(i, 6);
+
+    R_C_1(i)=A1*r^i + A2*r^(2+i) + Az(i); %Loaded part
+    R_C_2(i)=A5*r^i + A6*r^(2+i) + A7/(r^i) + A8*r^(2-i);
+end
+
+
+B1 = R_vars_Sm(1, 1);
+B2 = R_vars_Sm(1, 2);
+B5 = R_vars_Sm(1, 3);
+B6 = R_vars_Sm(1, 4);
+B7 = R_vars_Sm(1, 5);
+B8 = R_vars_Sm(1, 6);
+
+R_S_1(1)=B1*r + B2*r^3 + Bz(1); %Loaded part
+R_S_2(1)=B5*r + B6*r^3 + B7/r + B8*r*log(r);
+
+for i = 2:m
+    B1 = R_vars_Sm(i, 1);
+    B2 = R_vars_Sm(i, 2);
+    B5 = R_vars_Sm(i, 3);
+    B6 = R_vars_Sm(i, 4);
+    B7 = R_vars_Sm(i, 5);
+    B8 = R_vars_Sm(i, 6);
+
+    R_S_1(i)=B1*r^i + B2*r^(2+i) + Bz(i); %Loaded part
+    R_S_2(i)=B5*r^i + B6*r^(2+i) + B7/(r^i) + B8*r^(2-i);
+end
+
+A0_1 = R_vars_W0(1);
+A0_2 = R_vars_W0(2);
+A0_5 = R_vars_W0(3);
+A0_6 = R_vars_W0(4);
+A0_7 = R_vars_W0(5);
+A0_8 = R_vars_W0(6);
+
+R_W0_1=A0_1*r + A0_2*r^3 + PartSol(P0, 1);
+R_W0_2=A0_5*r + A0_6*r^3 + A0_7/r + A0_8*r*log(r);
+
+W_1 = 0;
+W_2 = 0;
+
+for i=1:m
+    W_1 = W_1+R_C_1(i)*cos(i*theta)+R_S_1(i)*sin(i*theta);
+    W_2 = W_2+R_C_2(i)*cos(i*theta)+R_S_2(i)*sin(i*theta);
+end
+
+W_1 = simplify((R_W0_1+W_1))
+W_2 = simplify((R_W0_2+W_2))
+double(subs(subs(W_1, r, 0.1), theta, 0))
+plot_at_theta(W_1, W_2, 0);
+plot_at_theta(W_1/h, W_2/h, 0);
+MRR_1 = simplify(Mrr(W_1));
+MRR_2 = simplify(Mrr(W_2));
+
+MRT_1 = Mrt(W_1);
+MRT_2 = Mrt(W_2);
+
+MTT_1 = Mtt(W_1);
+MTT_2 = Mtt(W_2);
+
+QR_1 = Qr(W_1);
+QR_2 = Qr(W_2);
+
+QT_1 = Qt(W_1);
+QT_2 = Qt(W_2);
+
+%PLOT TESTING
+%{
+W_1_1 = subs(W_1, theta, 0);
+W_2_1 = subs(W_2, theta, 0);
+
+R_1 = a:0.001:c;
+R_2 = c:0.001:b;
+
+W_1_1 = double(subs(W_1_1, r, R_1));
+W_2_1 = double(subs(W_2_1, r, R_2));
+
+W_1_2 = subs(W_1, theta, 0);
+W_2_2 = subs(W_2, theta, 0);
+
+W_1_2 = double(subs(W_1_2, r, R_1));
+W_2_2 = double(subs(W_2_2, r, R_2));
+
+plot(R_1, W_1_1, R_2, W_2_1, -R_1, W_1_2, -R_2, W_2_2)
+grid on
+xlim([-b b])
+ylim([-1*10^-7 5*10^-7])
+%}
+%PLOT TESTING DONE
+
+global R_theta R_1 R_2 X1 X2 Y1 Y2
+
+R_theta = 0:pi/18:2*pi;
+
+R_1 = 0:0.005:a;
+R_2 = a:0.005:b;
+
+for i = 1:length(R_theta)
+    for j = 1:length(R_1)
+        X1(i, j) = R_1(j)*cos(R_theta(i));
+        Y1(i, j) = R_1(j)*sin(R_theta(i));
+    end
+    for k = 1:length(R_2)
+        X2(i, k) = R_2(k)*cos(R_theta(i));
+        Y2(i, k) = R_2(k)*sin(R_theta(i));
+    end
+end
+
+
+COPYplot3Mat(P)
+W_1
+W_2
+plot_at_theta(W_1, W_2, 0);
+plot_at_theta(W_1/h, W_2/h, 0);
+plot_at_theta(MRR_1, MRR_2, 0);
+plot_at_theta(MRT_1, MRT_2, 0);
+plot_at_theta(MTT_1, MTT_2, 0);
+plot_at_theta(QR_1, QR_2, 0);
+plot_at_theta(QT_1, QT_2, 0);
+
+%{
+[R_W_1, R_W_2] = plot3Mat(W_1, W_2);
+[R_MRR_1, R_MRR_2] = plot3Mat(MRR_1, MRR_2);
+[R_MRT_1, R_MRT_2] = plot3Mat(MRT_1, MRT_2);
+[R_MTT_1, R_MTT_2] = plot3Mat(MTT_1, MTT_2);
+[R_QR_1, R_QR_2] = plot3Mat(QR_1, QR_2);
+[R_QT_1, R_QT_2] = plot3Mat(QT_1, QT_2);
+%}
+
+%{
+figure()
+plot3(X1, Y1, R_W_1, X2, Y2, R_W_2)
+grid on
+
+figure()
+plot3(X1, Y1, R_MRR_1, X2, Y2, R_MRR_2)
+grid on
+
+figure()
+plot3(X1, Y1, R_MRT_1, X2, Y2, R_MRT_2)
+grid on
+
+figure()
+plot3(X1, Y1, R_MTT_1, X2, Y2, R_MTT_2)
+grid on
+
+figure()
+plot3(X1, Y1, R_QR_1, X2, Y2, R_QR_2)
+grid on
+
+figure()
+plot3(X1, Y1, R_QT_1, X2, Y2, R_QT_2)
+grid on
+%}
+
+%subs(WW_1(1), r, R_1)
+
+%[numRows1,numCols1] = size(WW_1);
+%[numRows2,numCols2] = size(WW_2);
+
+%ANOTHER TESTING
+%{
+mrr = Mrr(W0_1)
+mtt = Mtt(W0_1)
+mrt = Mrt(W0_1)
+qr = Qr(W0_1)
+qt = Qt(W0_1)
+qrkg = QrKG(W0_1)
+qtkg = QtKG(W0_1)
+%}
+%TESTING DONE
+
+function [L_W_1, L_W_2, R_W_1, R_W_2]=plot_at_theta(W_1, W_2, THET)
+    syms theta r
+    global R_1 R_2
+
+    R_W_1 =  subs(subs(W_1, theta, THET), r, R_1);
+    R_W_2 =  subs(subs(W_2, theta, THET), r, R_2);
+
+    L_W_1 =  subs(subs(W_1, theta, THET+pi), r, R_1);
+    L_W_2 =  subs(subs(W_2, theta, THET+pi), r, R_2);
+
+    figure()
+    plot(-R_1, L_W_1, -R_2, L_W_2, R_1, R_W_1, R_2, R_W_2)
+    grid on
+    LIM = double(1.5*max(abs(R_W_1)));
+    
+end
+
+function [R_W_1, R_W_2]=COPYplot3Mat(P)
+    syms theta r
+    global R_theta R_1 R_2 X1 X2 Y1 Y2
+    WW_1 = subs(P, theta, R_theta);
+    WW_2 = subs(P, theta, R_theta);
+
+    WW_1 = WW_1.';
+    WW_2 = WW_2.';
+
+    for i = 1:length(R_theta)
+        R_W_1(i, :) =  subs(WW_1(i), r, R_1);
+        R_W_2(i, :) =  subs(WW_2(i), r, R_2);
+    end
+
+    figure()
+    plot3(X1, Y1, R_W_1, X2, Y2, R_W_2)
+    grid on
+end
+
+function [R_W_1, R_W_2]=plot3Mat(W_1, W_2)
+    syms theta r
+    global R_theta R_1 R_2 X1 X2 Y1 Y2
+    WW_1 = subs(W_1, theta, R_theta);
+    WW_2 = subs(W_2, theta, R_theta);
+
+    WW_1 = WW_1.';
+    WW_2 = WW_2.';
+
+    for i = 1:length(R_theta)
+        R_W_1(i, :) =  subs(WW_1(i), r, R_1);
+        R_W_2(i, :) =  subs(WW_2(i), r, R_2);
+    end
+
+    figure()
+    plot3(X1, Y1, R_W_1, X2, Y2, R_W_2)
+    grid on
+end
+
+function [res] = c_UniqueSol(W0_1, W0_2, vars, i) %ONLY WORKS FOR YOU, WILL NEED TO CHANGE ACCORDING TO CONDITIONS
+    global a c b
+    syms r
+    eqns = [subs(W0_1*fun, r, a)==subs(W0_2, r, a)
+    subs(diff(W0_1*fun, r), r, a)==subs(diff(W0_2, r), r, a)
+    subs(c_Mrr(W0_1*fun, i), r, a)==subs(c_Mrr(W0_2, i), r, a)
+    subs(c_Qr(W0_1*fun, i), r, a)==subs(c_Qr(W0_2, i), r, a)
+    subs(W0_2*fun, r, b)==0
+    subs(Mrr(W0_2*fun, i), r, b)==0];
+
+    [res1, res2, res3, res4, res5, res6]=solve(eqns, vars);
+    res = [res1, res2, res3, res4, res5, res6];
+end
+
+function [res] = O_UniqueSol(W0_1, W0_2, vars) %ONLY WORKS FOR YOU, WILL NEED TO CHANGE ACCORDING TO CONDITIONS
+    global a c b
+    syms r
+    eqns = [subs(W0_1, r, a)==subs(W0_2, r, a)
+    subs(diff(W0_1, r), r, a)==subs(diff(W0_2, r), r, a)
+    subs(O_Mrr(W0_1), r, a)==subs(O_Mrr(W0_2), r, a)
+    subs(O_Qr(W0_1), r, a)==subs(O_Qr(W0_2), r, a)
+    subs(W0_2, r, b)==0
+    subs(O_Mrr(W0_2), r, b)==0];
+
+    [res1, res2, res3, res4, res5, res6]=solve(eqns, vars);
+    res = [res1, res2, res3, res4, res5, res6];
+end
+
+function res = Mrr_r(pW)
+    global D nu
+    syms r theta
+    res =D*(diff(pW, r, 2)+nu*(1/r*diff(pW, r)));
+end
+
+%{
+function res = Mrr(pW)
+    global D nu
+    syms r theta
+    res =D*(diff(pW, r, 2)+nu*(1/r*diff(pW, r)+1/r^2*diff(pW, theta, 2)));
+end
+
+function res = Mtt(pW)
+    global D nu
+    syms r theta
+    res = D*(1/r*diff(pW, r)+1/r^2*diff(pW, theta, 2)+nu*(diff(pW, r, 2)));
+end
+
+function res = Mrt(pW)
+    global D nu
+    syms r theta
+    res = D*(1-nu)*(1/r*diff(diff(pW, r), theta)-r^2*diff(pW, theta));
+end
+
+function res = Qr(pW)
+    global D
+    syms r theta
+    res = D*diff(delta(pW), r);
+end
+
+function res = Qt(pW)
+    global D
+    syms r theta
+    res = D*1/r*diff(delta(pW), theta);
+end
+
+function res = QrKG(pW)
+    global D
+    syms r theta
+    res = Qr(pW)+1/r*diff(Mrt(pW), theta);
+end
+
+function res = QtKG(pW)
+    global D
+    syms r theta
+    res = Qt(pW)+diff(Mrt(pW), r);
+end
+%}
+
+function res = O_LAPL(W)
+    syms r theta
+    res = diff(W, r, 2)+1/r*diff(W, r);
+end
+
+function res = O_Mrr(pW)
+    global D nu
+    syms r theta
+    res =D*(diff(pW, r, 2)+nu*(1/r*diff(pW, r)));
+end
+
+function res = O_Mtt(pW)
+    global D nu
+    syms r theta
+    res = 0;
+end
+
+function res = O_Mrt(pW)
+    global D nu
+    syms r theta
+    res = D*(1-nu)*(1/r*diff(pW, r, 2));
+end
+
+function res = O_Qr(pW)
+    global D
+    syms r theta
+    res = D*diff(O_LAPL(pW), r);
+end
+
+function res = O_Qt(pW)
+    global D
+    syms r theta
+    res = 0;
+end
+
+function res = O_QrKG(pW)
+    global D
+    syms r theta
+    res = O_Qr(pW)+1/r*O_Mrt(pW);
+end
+
+function res = O_QtKG(pW)
+    global D
+    syms r theta
+    res = 0;
+end
+
+
+
+function res = c_LAPL(W, i)
+    syms r theta
+    res = diff(W, r, 2)+1/r*diff(W, r)-i^2*W/r^2;
+end
+
+function res = c_Mrr(pW, i)
+    global D nu
+    syms r theta
+    res =D*(diff(pW, r, 2)+nu*(1/r*diff(pW, r)-i^2*pW/r^2));
+end
+
+function res = c_Mtt(pW, i)
+    global D nu
+    syms r theta
+    res = D*(1/r*diff(pW, r)-i^2*pW/r^2+nu*(diff(pW, r, 2)));
+end
+
+function res = c_Mrt(pW, i)
+    global D nu
+    syms r theta
+    res = D*(1-nu)*(-i*1/r*diff(pW, r)+i*pW/r^2);
+end
+
+function res = c_Qr(pW, i)
+    global D
+    syms r theta
+    res = D*diff(c_LAPL(pW, i), r);
+end
+
+function res = c_Qt(pW, i)
+    global D
+    syms r theta
+    res = -D*i*1/r*diff(c_LAPL(pW, i), r);
+end
+
+function res = c_QrKG(pW,i)
+    global D
+    syms r theta
+    res = c_Qr(pW)+1/r*i*c_Mrt(pW,i);
+end
+
+function res = c_QtKG(pW)
+    global D
+    syms r theta
+    res = c_Qt(pW)+diff(c_Mrt(pW), r);
+end
+
+function res = PartSol(EQ2, fun)
+    global D
+    syms A B C r
+    EQ1=simplify(D*delta(delta((A*r^2+B*r+C)*r^4*fun)));
+    %EQ2 = P1*r/R
+    EQ2 = (EQ2 + r^2)*fun;
+    eq1=coeffs(EQ1, r, 'All');
+    %[eq2, t2]=coeffs(Pmz(2)*cos(theta), r, 'All')
+    eq2=coeffs(EQ2, r, 'All');
+
+    AS=solve(eq1(1)==eq2(1)-fun, A);
+    BS=solve(eq1(2)==eq2(2), B);
+    CS=solve(eq1(3)==eq2(3), C);
+    res = (AS*r^2+BS*r+CS)*r^4;
+end
+
+%{
+function res = PartSol(Pmz, rem)
+    global D
+    syms B theta
+    W = B*rem;
+    res=solve(D*delta(delta(W))==Pmz, B);
+end
+%}
+
+function res = delta(W)
+    syms r theta
+    res = diff(W, r, 2)+1/r*diff(W, r)+1/r^2*diff(W, theta, 2);
+end
