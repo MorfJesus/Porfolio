@@ -11,3 +11,7 @@
 //**(RUS)ft_ls** - моя C++ имплементация unix комманды ls<br />
 **(ENG)calc** - my basic C++ multithreaded (currently unfinished) calculator implementation, accounting for orders of computation as well as parentheses<br />
 **(RUS)calc** - моя базовая C++ имплементация многопоточного (на данный момент не до конца) калькулятора, учитывающего порядок операций, а также скобочки<br />
+**(ENG)binance_futures** - my first steps in algorithm trading using binance futures api<br />
+**(RUS)binance_futures** - мои первые шаги в algorithm trading с использованием API binance futures<br />
+**(ENG)matlab_pile** - a pile of all the matlab scripts created during my education in university, piled up without any description as remembering what each script does would be more trouble than it's worth<br />
+**(RUS)matlab_pile** - несортированные matlab скрипты созданные во время моего обучения в университете, без какого либо описания, так как вспоминать, что делает каждый из них заняло бы слишком много времени и сил<br />
